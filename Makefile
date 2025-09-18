@@ -1,6 +1,6 @@
 # Makefile for Reddit Stalker API Deployment
 
-.PHONY: help install test run deploy clean dev-setup prod-check docker-build docker-run docker-stop
+.PHONY: help install test run deploy clean dev-setup prod-check docker-build docker-run docker-stop test-prod quick-test-prod
 
 # Default target
 help:
@@ -15,6 +15,8 @@ help:
 	@echo "  docker-build - Build Docker image"
 	@echo "  docker-run   - Run Docker container"
 	@echo "  docker-stop  - Stop Docker container"
+	@echo "  test-prod    - Test production API (full suite)"
+	@echo "  quick-test-prod - Quick production API test"
 
 # Install dependencies
 install:
@@ -69,3 +71,12 @@ docker-stop:
 	@echo "Stopping Docker container..."
 	docker stop reddit-stalker-api || true
 	docker rm reddit-stalker-api || true
+
+# Production testing commands
+test-prod:
+	@echo "Running full production API test suite..."
+	python tests/test_production_api.py
+
+quick-test-prod:
+	@echo "Running quick production API test..."
+	python tests/quick_production_test.py
