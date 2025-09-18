@@ -1,6 +1,6 @@
 # Makefile for Reddit Stalker API Deployment
 
-.PHONY: help install test run deploy clean dev-setup prod-check docker-build docker-run docker-stop test-prod quick-test-prod
+.PHONY: help install test run deploy clean dev-setup prod-check docker-build docker-run docker-stop test-prod quick-test-prod test-cors
 
 # Default target
 help:
@@ -17,6 +17,7 @@ help:
 	@echo "  docker-stop  - Stop Docker container"
 	@echo "  test-prod    - Test production API (full suite)"
 	@echo "  quick-test-prod - Quick production API test"
+	@echo "  test-cors    - Test CORS functionality for frontend"
 
 # Install dependencies
 install:
@@ -80,3 +81,7 @@ test-prod:
 quick-test-prod:
 	@echo "Running quick production API test..."
 	python tests/quick_production_test.py
+
+test-cors:
+	@echo "Testing CORS functionality..."
+	python tests/test_cors.py

@@ -47,7 +47,15 @@ def test_analyze_basic():
             print(f"Success: {result['success']}")
             print(f"User ID: {result['user_id']}")
             print(f"Analyzed User: {result['analyzed_user']}")
-            print(f"Summary Preview: {result['summary'][:200]}...")
+            print("\n📊 FULL ANALYSIS RESULTS:")
+            print("="*80)
+            print(f"User: u/{result['analyzed_user']}")
+            print(f"Analysis ID: {result['user_id']}")
+            print(f"Success: {result['success']}")
+            print("\n🤖 AI Analysis Summary:")
+            print("-"*50)
+            print(result['summary'])
+            print("="*80)
             print("Basic analysis test passed!\n")
             return True
         else:

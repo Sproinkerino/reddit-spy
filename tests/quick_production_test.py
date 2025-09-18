@@ -43,7 +43,15 @@ def quick_test():
         if response.status_code == 200:
             data = response.json()
             print(f"   ✅ Analysis successful for u/{data['analyzed_user']}")
-            print(f"   📝 Summary preview: {data['summary'][:100]}...")
+            print(f"   📝 Full Analysis Results:")
+            print("   " + "="*60)
+            print(f"   User: u/{data['analyzed_user']}")
+            print(f"   User ID: {data['user_id']}")
+            print(f"   Success: {data['success']}")
+            print(f"   Analysis Summary:")
+            print("   " + "-"*40)
+            print(f"   {data['summary']}")
+            print("   " + "="*60)
         else:
             print(f"   ❌ Analysis failed: {response.status_code}")
             print(f"   Response: {response.text}")
