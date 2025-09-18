@@ -1,0 +1,12 @@
+// app purpose
+
+Purpose is to make me an api using python fastapi taht calls reddit api 
+
+use dotenv for api keys
+
+
+a frontend by react will call this api with these values
+
+user_id of the caller
+user to search
+parameters (json)
