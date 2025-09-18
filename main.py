@@ -78,6 +78,9 @@ async def get_reddit_user_data(username, parameters: Dict[str, Any]):
         )
 
         redditor = await reddit.redditor(username)
+        
+        # Load the redditor to ensure it exists and is accessible
+        await redditor.load()
 
         # Use a list to store all the text content
         content = []
@@ -120,7 +123,12 @@ def summarize_with_llm(user_data, username, parameters: Dict[str, Any]):
     system_prompt = "You are a helpful assistant that analyzes Reddit user histories to create a concise, insightful summary. Be objective and base your analysis strictly on the provided text."
 
     if custom_prompt:
-        user_prompt = custom_prompt.format(username=username, user_data=user_data)
+        # Check if custom prompt has format placeholders
+        if "{username}" in custom_prompt or "{user_data}" in custom_prompt:
+            user_prompt = custom_prompt.format(username=username, user_data=user_data)
+        else:
+            # If no placeholders, append the data to the custom prompt
+            user_prompt = f"{custom_prompt}\n\nUser: u/{username}\nData: {user_data}"
     else:
         user_prompt = f"""
         Please analyze the following collection of recent Reddit posts and comments from the user u/{username}.
