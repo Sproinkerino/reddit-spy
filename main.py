@@ -1,9 +1,10 @@
 import os
-import praw
+import asyncpraw
 import requests
 import json
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Dict, Any, Optional
 import uvicorn
@@ -28,6 +29,22 @@ if not all([REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT, OPENAI_AP
 # --- FASTAPI APP SETUP ---
 app = FastAPI(title="Reddit Stalker API", description="API for analyzing Reddit user data")
 
+# Add CORS middleware to allow frontend communication
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",  # React development server
+        "http://localhost:3001",  # Alternative React port
+        "http://127.0.0.1:3000",  # Alternative localhost
+        "http://127.0.0.1:3001",  # Alternative localhost
+        "https://your-frontend-domain.com",  # Replace with your actual frontend domain
+        "*"  # Allow all origins for development (remove in production)
+    ],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
+)
+
 # Request model for the API
 class AnalyzeUserRequest(BaseModel):
     user_id: str
@@ -43,8 +60,8 @@ class AnalyzeUserResponse(BaseModel):
     error: Optional[str] = None
 
 
-# --- 2. FUNCTION TO FETCH REDDIT DATA ---
-def get_reddit_user_data(username, parameters: Dict[str, Any]):
+# --- 2. FUNCTION TO FETCH REDDIT DATA (ASYNC) ---
+async def get_reddit_user_data(username, parameters: Dict[str, Any]):
     """
     Fetches recent submissions and comments for a given Reddit username.
     Parameters can include post_limit and comment_limit.
@@ -53,31 +70,34 @@ def get_reddit_user_data(username, parameters: Dict[str, Any]):
     comment_limit = parameters.get("comment_limit", 100)
     
     try:
-        # Initialize PRAW with your credentials
-        reddit = praw.Reddit(
+        # Initialize AsyncPRAW with your credentials
+        reddit = asyncpraw.Reddit(
             client_id=REDDIT_CLIENT_ID,
             client_secret=REDDIT_CLIENT_SECRET,
             user_agent=REDDIT_USER_AGENT,
         )
 
-        redditor = reddit.redditor(username)
+        redditor = await reddit.redditor(username)
 
         # Use a list to store all the text content
         content = []
 
         # Fetch recent submissions (posts)
-        for submission in redditor.submissions.new(limit=post_limit):
+        async for submission in redditor.submissions.new(limit=post_limit):
             # Add post title and selftext (if it exists)
             content.append(f"Post Title: {submission.title}")
             if submission.selftext:
                 content.append(f"Post Body: {submission.selftext}")
 
         # Fetch recent comments
-        for comment in redditor.comments.new(limit=comment_limit):
+        async for comment in redditor.comments.new(limit=comment_limit):
             content.append(f"Comment: {comment.body}")
 
         if not content:
             raise ValueError(f"No recent public activity found for u/{username}")
+
+        # Close the reddit instance
+        await reddit.close()
 
         # Join all collected text into a single string, separated by newlines
         return "\n---\n".join(content)
@@ -166,8 +186,8 @@ async def analyze_user(request: AnalyzeUserRequest):
         AnalyzeUserResponse with analysis summary or error information
     """
     try:
-        # Step 1: Get the data from Reddit
-        reddit_data = get_reddit_user_data(request.user_to_search, request.parameters)
+        # Step 1: Get the data from Reddit (now async)
+        reddit_data = await get_reddit_user_data(request.user_to_search, request.parameters)
         
         # Step 2: Send it for summarization
         llm_summary = summarize_with_llm(reddit_data, request.user_to_search, request.parameters)

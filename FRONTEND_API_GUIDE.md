@@ -6,7 +6,7 @@ This guide explains how to integrate the Reddit Stalker API with your React fron
 
 ```
 http://localhost:8000  (Development)
-https://your-app.onrender.com  (Production)
+https://reddit-spy.onrender.com/ (Production)
 ```
 
 ## Authentication
